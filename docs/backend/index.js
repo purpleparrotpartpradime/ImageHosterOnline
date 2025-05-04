@@ -1,0 +1,11 @@
+const express = require('express');
+require('dotenv').config();
+const bodyParser = require('body-parser');
+const issueRoutes = require('./routes/posts');
+const path = require('path');
+const app = express();
+app.use(bodyParser.json());
+app.use('/api/posts', issueRoutes);
+app.use(express.static(path.join(__dirname, '..', 'docs')));
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, ()=> console.log(`Server on port ${PORT}`));

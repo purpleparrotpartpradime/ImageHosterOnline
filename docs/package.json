@@ -1,0 +1,14 @@
+{
+  "name": "imagehoster-land-secure2",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node backend/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.7",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.0.3",
+    "crypto": "^1.0.1"
+  }
+}
