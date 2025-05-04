@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ImageHoster.Land</title>
+  <style>
+    /* Inline CSS */
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    header { display: flex; gap: 10px; padding: 10px; background: #f4f4f4; align-items: center; }
+    #search { flex: 1; padding: 5px; }
+    #postBtn { padding: 5px 10px; }
+    main { padding: 10px; }
+    .post { border: 1px solid #ccc; margin: 10px 0; padding: 10px; position: relative; }
+    .post button.copy { position: absolute; top: 10px; right: 10px; }
+    .post img, .post video { max-width: 100%; margin-top: 10px; }
+    .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); }
+    .modal-content { background:#fff; margin:10% auto; padding:20px; width:50%; position: relative; }
+    .modal-content .close { position: absolute; top: 10px; right: 10px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ImageHoster.Land</h1>
+    <input id="search" placeholder="Search..." />
+    <button id="postBtn">Post</button>
+  </header>
+  <main id="posts"></main>
+
+  <!-- Modal for creating post -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="close">&times;</span>
+      <h2>Create Post</h2>
+      <input id="title" placeholder="Title" /><br/><br/>
+      <textarea id="body" placeholder="Body"></textarea><br/><br/>
+      <input id="file" type="file" /><br/><br/>
+      <button id="submit">Submit</button>
+    </div>
+  </div>
+
+  <script>
+    // Load posts
+    async function loadPosts(query = '') {
+      const res = await fetch('/api/posts' + (query ? '?q=' + encodeURIComponent(query) : ''));
+      const posts = await res.json();
+      const container = document.getElementById('posts');
+      container.innerHTML = '';
+      posts.forEach(post => {
+        const div = document.createElement('div');
+        div.className = 'post';
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy';
+        copyBtn.innerText = 'Copy ID';
+        copyBtn.onclick = () => {
+          const link = window.location.origin + '/post/' + post._id;
+          navigator.clipboard.writeText(link);
+          alert('Link copied!');
+        };
+        div.appendChild(copyBtn);
+        const html = `
+          <h2>${post.title}</h2>
+          <p>${post.body}</p>
+          ${post.type === 'image' ? `<img src="/uploads/${post.file}" />` : `<video controls src="/uploads/${post.file}"></video>`}
+        `;
+        div.innerHTML += html;
+        container.appendChild(div);
+      });
+    }
+
+    // Modal logic
+    const modal = document.getElementById('modal');
+    document.getElementById('postBtn').onclick = () => modal.style.display = 'block';
+    document.getElementById('close').onclick = () => modal.style.display = 'none';
+
+    // Submit post
+    document.getElementById('submit').onclick = async () => {
+      const title = document.getElementById('title').value;
+      const body = document.getElementById('body').value;
+      const file = document.getElementById('file').files[0];
+      const form = new FormData();
+      form.append('title', title);
+      form.append('body', body);
+      form.append('file', file);
+      await fetch('/api/posts', { method: 'POST', body: form });
+      modal.style.display = 'none';
+      loadPosts();
+    };
+
+    // Search functionality
+    document.getElementById('search').oninput = (e) => loadPosts(e.target.value);
+
+    // Initial load
+    loadPosts();
+  </script>
+</body>
+</html>
